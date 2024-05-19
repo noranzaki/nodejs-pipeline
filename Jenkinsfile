@@ -4,69 +4,56 @@ pipeline {
     }
     
     tools {
-        terraform 'Terraform'
+        terraform 'terraform'
     }
-    
     parameters {
         choice(name: 'WORKSPACE', choices: ['dev', 'production'], description: 'Terraform workspace (dev or production)')
         choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Terraform action to perform')
     }
-    
     environment {
-        AWS_CREDENTIALS_ID = 'aws-cred'
+        AWS_ACCESS_KEY_ID     = credentials('AWS-Access-Key-ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS-Secret-Access-Key')
+        AWS_DEFAULT_REGION    = 'eu-west-1'
     }
-    
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/noranzaki/nodejs-pipeline.git'
             }    
         }
-        
-        stage('Terraform Init') {
+        stage('Terraform init') {
             steps {
                 dir('terraform') {
-                    sh 'terraform init'
+                    sh 'terraform init -input=false'
                 }
             }
         }
-        
         stage('Select Workspace') {
             steps {
                 dir('terraform') {
-                    script {
-                        sh "terraform workspace select ${params.WORKSPACE} || terraform workspace new ${params.WORKSPACE}"
-                    }
+                    sh "terraform workspace select ${params.WORKSPACE} || terraform workspace new ${params.WORKSPACE}"
                 }
             }
         }
-        
         stage('Terraform Plan') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: AWS_CREDENTIALS_ID]]) {
-                    dir('terraform') {
-                        script {
-                            sh "terraform plan -input=false -out=tfplan -var-file=${params.WORKSPACE}.tfvars"
-                        }
-                    }
+                dir('terraform') {
+                    sh "terraform plan -var-file=${params.WORKSPACE}.tfvars"
                 }
             }
         }
-        
-        stage('Execute Terraform') {
+        stage('Terraform Apply/Destroy') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: AWS_CREDENTIALS_ID]]) {
-                    dir('terraform') {
-                        script {
-                            if (params.ACTION == 'apply') {
-                                sh "terraform apply -input=false tfplan -var-file=${params.WORKSPACE}.tfvars"
-                            } else if (params.ACTION == 'destroy') {
-                                sh "terraform destroy -auto-approve -var-file=${params.WORKSPACE}.tfvars"
-                            }
+                dir('terraform') {
+                    script {
+                        if (params.ACTION == 'apply') {
+                            sh "terraform apply -auto-approve -var-file=${WORKSPACE}.tfvars"
+                        } else if (params.ACTION == 'destroy') {
+                            sh "terraform destroy -auto-approve -var-file=${WORKSPACE}.tfvars"
                         }
                     }
                 }
             }
-        }
+        } 
     }
 }
