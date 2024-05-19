@@ -1,0 +1,11 @@
+# Ansible
+ansible/ansible.pem
+ansible/inventory
+*.retry
+
+# Terraform
+terraform/.terraform*
+terraform/*tfplan*
+terraform/bastionIP
+*.tfstate
+*.tfstate.backup
