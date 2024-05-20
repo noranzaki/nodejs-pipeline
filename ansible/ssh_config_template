@@ -1,0 +1,10 @@
+Host bastion
+  HostName 54.195.7.151
+  User ubuntu
+  IdentityFile /ansible/.ssh/mykeypair.pem
+
+Host private-app
+  HostName 10.0.3.107
+  ProxyJump bastion
+  User ubuntu
+  IdentityFile /ansible/.ssh/mykeypair.pem

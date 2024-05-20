@@ -1,6 +1,6 @@
 ---
 - name: configure ec2 
-  hosts: all
+  hosts: slave-node
   remote_user: ubuntu
   become: yes
   tasks:

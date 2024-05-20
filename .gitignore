@@ -1,5 +1,5 @@
 # Ansible
-ansible/ansible.pem
+ansible/.ssh
 ansible/inventory
 *.retry
 
