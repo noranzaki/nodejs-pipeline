@@ -1,10 +1,10 @@
 Host bastion
-  HostName 54.195.7.151
+  HostName 3.252.141.179
   User ubuntu
-  IdentityFile /ansible/.ssh/mykeypair.pem
+  IdentityFile /home/noran/iti/jenkins/project/ansible/.ssh/mykeypair.pem
 
 Host private-app
-  HostName 10.0.3.107
+  HostName 10.0.3.132
   ProxyJump bastion
   User ubuntu
-  IdentityFile /ansible/.ssh/mykeypair.pem
+  IdentityFile /home/noran/iti/jenkins/project/ansible/.ssh/mykeypair.pem

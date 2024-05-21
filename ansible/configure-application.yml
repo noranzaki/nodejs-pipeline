@@ -1,5 +1,5 @@
 ---
-- name: configure private ec2 to be private agent
+- name: Configure private EC2 to be a private agent
   hosts: private-app
   remote_user: ubuntu
   become: yes
@@ -8,14 +8,42 @@
       apt:
         update_cache: yes
 
-    - name: Download and install Docker
+    - name: Install prerequisite packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Update apt cache after adding Docker repository
+      apt:
+        update_cache: yes
+
+    - name: Install Docker CE
       apt:
         name: docker-ce
         state: present
 
-    - name: Download and install OpenJDK 11
+    - name: Install OpenJDK 11
       apt:
         name: openjdk-11-jdk
+        state: present
+
+    - name: Install SSH server
+      apt:
+        name: openssh-server
         state: present
 
     - name: Create Jenkins directory
@@ -24,28 +52,15 @@
         state: directory
         owner: ubuntu
         group: ubuntu
+        mode: '0777'
 
-    - name: Download and install Git
+    - name: Install Git
       apt:
         name: git
         state: present
 
-    - name: Add user to the 'docker' group
+    - name: Add ubuntu user to the docker group
       user:
         name: ubuntu
         groups: docker
         append: yes
-
-    - name: Create 'jenkins' user
-      user:
-        name: jenkins
-        state: present
-        groups: docker
-        append: yes
-
-    - name: Ensure jenkins user can connect to Docker socket
-      become: yes
-      file:
-        path: /var/run/docker.sock
-        group: docker
-        mode: '0777'
